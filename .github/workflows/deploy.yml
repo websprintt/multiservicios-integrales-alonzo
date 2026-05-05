@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main"] # Asegúrate de que tu rama se llame main o cambia esto a master
 
 permissions:
   contents: read
@@ -21,15 +21,16 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # Usamos Node 22 (LTS reciente)
-          # cache: 'npm' # Si no tienes el lock file aún, puedes comentar esta línea
-          # Pero como te lo voy a dar ahora, podemos dejarla.
+          node-version: 22 # Usamos una versión moderna y estable
 
       - name: Install dependencies
-        run: npm install
+        run: npm install # Esto generará el entorno sin necesitar el lock file previo
 
       - name: Build
         run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
