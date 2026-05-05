@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+:root {
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply antialiased;
+}
