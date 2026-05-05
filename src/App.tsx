@@ -39,25 +39,30 @@ const RATING = 4.8;
 // --- Security Components ---
 
 const SecureLink = ({ b64, type, children, className, text }: { b64: string, type: 'tel' | 'whatsapp', children: React.ReactNode, className?: string, text?: string }) => {
-  const [href, setHref] = useState('#');
-  const handleInteraction = () => {
-    if (href === '#') {
-      const decoded = atob(b64).replace(/\s/g, '');
-      if (type === 'whatsapp') {
-        const encodedText = encodeURIComponent(text || 'Hola! Me gustaría pedir un presupuesto para una reforma.');
-        setHref(`https://wa.me/34${decoded}?text=${encodedText}`);
-      } else {
-        setHref(`tel:${decoded}`);
-      }
+  const getHref = () => {
+    const decoded = atob(b64).replace(/\s/g, '');
+    if (type === 'whatsapp') {
+      const encodedText = encodeURIComponent(text || 'Hola! Me gustaría pedir un presupuesto para una reforma.');
+      return `https://wa.me/34${decoded}?text=${encodedText}`;
+    }
+    return `tel:${decoded}`;
+  };
+
+  const handleInteraction = (e: React.MouseEvent) => {
+    // If it's tel and on mobile, we might want to ensure navigation
+    const href = getHref();
+    if (type === 'tel') {
+      e.preventDefault();
+      window.location.href = href;
     }
   };
+
   return (
     <a 
-      href={href} 
+      href={getHref()}
       onClick={handleInteraction}
-      onMouseEnter={handleInteraction}
-      target="_blank" 
-      rel="noopener noreferrer"
+      target={type === 'whatsapp' ? "_blank" : undefined}
+      rel={type === 'whatsapp' ? "noopener noreferrer" : undefined}
       className={className}
       aria-label={`${type === 'tel' ? 'Llamar' : 'WhatsApp'} a ${COMPANY_NAME}`}
     >
@@ -103,6 +108,13 @@ const LocalSEO = () => (
   />
 );
 
+const MENU_ITEMS = [
+  { id: 'problema', label: 'Problema' },
+  { id: 'solucion', label: 'Solución' },
+  { id: 'servicios', label: 'Servicios' },
+  { id: 'opiniones', label: 'Opiniones' }
+];
+
 // --- UI Components ---
 
 const SectionTitle = ({ subtitle, title, light = false }: { subtitle: string, title: string, light?: boolean }) => (
@@ -128,38 +140,61 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      setIsMobileMenuOpen(false);
+      
+      // Calculate position
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4' : 'py-6'}`}>
-      <div className="container mx-auto px-6">
-        <div className={`flex items-center justify-between px-6 py-3 rounded-2xl transition-all duration-500 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-lg border border-zinc-200' : 'bg-transparent'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${isScrolled ? 'py-2' : 'py-6'}`}>
+      <div className="container mx-auto px-4 md:px-6">
+        <div className={`flex items-center justify-between px-6 py-3 rounded-2xl transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg border border-zinc-100' : 'bg-transparent'}`}>
           <div className="flex items-center gap-2">
-            <Layers size={24} className="text-blue-600" />
-            <span className="text-sm font-black tracking-tighter text-zinc-950 uppercase">
+            <Layers size={22} className="text-blue-600" />
+            <span className="text-[10px] md:text-sm font-black tracking-tighter text-zinc-950 uppercase whitespace-nowrap">
               MULTISERVICIOS INTEGRALES <span className="text-blue-600">ALONZO</span>
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-10">
-            {['Problema', 'Solución', 'Servicios', 'Opiniones'].map((item) => (
+          <div className="hidden lg:flex items-center gap-8">
+            {MENU_ITEMS.map((item) => (
               <a 
-                key={item} 
-                href={`#${item.toLowerCase()}`} 
-                className="text-xs font-black uppercase tracking-widest text-zinc-600 hover:text-blue-600 transition-colors"
+                key={item.id} 
+                href={`#${item.id}`} 
+                onClick={(e) => scrollToSection(e, item.id)}
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-blue-600 transition-colors"
               >
-                {item}
+                {item.label}
               </a>
             ))}
             <SecureLink 
               b64={COMPANY_PHONE_B64} 
               type="tel" 
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95 flex items-center gap-2"
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-md active:scale-95 flex items-center gap-2"
             >
-              <Phone size={14} />
-              Llamar Directo
+              <Phone size={12} />
+              Llamar
             </SecureLink>
           </div>
 
-          <button className="md:hidden text-zinc-950" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <button 
+            className="lg:hidden text-zinc-950 p-2" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -168,28 +203,30 @@ const Navbar = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="absolute top-full left-0 right-0 bg-white border-b border-zinc-200 p-6 md:hidden shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="absolute top-full left-4 right-4 mt-2 bg-white border border-zinc-100 rounded-[2rem] p-8 lg:hidden shadow-2xl z-[110]"
           >
             <div className="flex flex-col gap-6 text-center">
-              {['Problema', 'Solución', 'Servicios', 'Opiniones'].map((item) => (
+              {MENU_ITEMS.map((item) => (
                 <a 
-                  key={item} 
-                  href={`#${item.toLowerCase()}`} 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-sm font-black uppercase tracking-widest text-zinc-900"
+                  key={item.id} 
+                  href={`#${item.id}`} 
+                  onClick={(e) => scrollToSection(e, item.id)}
+                  className="text-xl font-black uppercase tracking-[0.2rem] text-zinc-950 py-3 border-b border-zinc-50 active:text-blue-600 transition-colors"
                 >
-                  {item}
+                  {item.label}
                 </a>
               ))}
-              <SecureLink b64={COMPANY_PHONE_B64} type="tel" className="bg-zinc-950 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em] flex justify-center items-center gap-2">
-                <Phone size={16} /> Llamada Directa
-              </SecureLink>
-              <SecureLink b64={COMPANY_PHONE_B64} type="whatsapp" text="Hola! Quiero un presupuesto para una reforma." className="bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em]">
-                Pedir Presupuesto WhatsApp
-              </SecureLink>
+              <div className="flex flex-col gap-4 mt-4">
+                <SecureLink b64={COMPANY_PHONE_B64} type="tel" className="bg-zinc-950 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex justify-center items-center gap-2 active:scale-95 transition-transform">
+                  <Phone size={18} /> Llamada Directa
+                </SecureLink>
+                <SecureLink b64={COMPANY_PHONE_B64} type="whatsapp" text="Hola! Quiero un presupuesto para una reforma." className="bg-blue-600 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] active:scale-95 transition-transform">
+                  Pedir Presupuesto WhatsApp
+                </SecureLink>
+              </div>
             </div>
           </motion.div>
         )}
@@ -325,7 +362,7 @@ const Problem = () => {
   ];
 
   return (
-    <section id="problema" className="py-32 bg-zinc-50">
+    <section id="problema" className="py-32 bg-zinc-50 scroll-mt-24">
       <div className="container mx-auto px-6">
         <SectionTitle subtitle="Situación Real" title="¿Cansado de lidiar con problemas evitables?" />
         
@@ -373,7 +410,7 @@ const Problem = () => {
 
 const Solution = () => {
   return (
-    <section id="solución" className="py-32 bg-white">
+    <section id="solucion" className="py-32 bg-white scroll-mt-24">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div>
@@ -435,7 +472,7 @@ const Services = () => {
   ];
 
   return (
-    <section id="servicios" className="py-32 bg-zinc-950 text-white">
+    <section id="servicios" className="py-32 bg-zinc-950 text-white scroll-mt-24">
       <div className="container mx-auto px-6">
         <SectionTitle subtitle="Lo Que Hacemos" title="Eficacia técnica en cada rincón." light />
         
@@ -519,7 +556,7 @@ const Testimonials = () => {
   const repeatedReviews = [...reviews, ...reviews];
 
   return (
-    <section id="opiniones" className="py-32 bg-white overflow-hidden">
+    <section id="opiniones" className="py-32 bg-white overflow-hidden scroll-mt-24">
       <div className="container mx-auto px-6 mb-20">
         <div className="flex flex-col md:flex-row items-end justify-between gap-10">
           <SectionTitle subtitle="Prueba Social" title="⭐ 4.8 / 100+ Opiniones Reales" />
