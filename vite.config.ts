@@ -6,7 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/websprintt.github.io/multiservicios-integrales-alonzo/',
+    base: './',
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
