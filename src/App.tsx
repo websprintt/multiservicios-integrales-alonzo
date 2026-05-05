@@ -69,35 +69,38 @@ const SecureLink = ({ b64, type, children, className, text }: { b64: string, typ
 // --- SEO Schema Component ---
 
 const LocalSEO = () => (
-  <script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": COMPANY_NAME,
-      "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
-      "@id": "https://multiserviciosalonzo.com",
-      "url": "https://multiserviciosalonzo.com",
-      "telephone": "+34678204301",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Calle Carmen, 8",
-        "addressLocality": "Ciudad Real",
-        "postalCode": "13003",
-        "addressCountry": "ES"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 38.9848,
-        "longitude": -3.9274
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": RATING,
-        "reviewCount": REVIEWS_COUNT
-      },
-      "priceRange": "$$"
-    })}
-  </script>
+  <script 
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": COMPANY_NAME,
+        "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+        "@id": "https://multiserviciosalonzo.com",
+        "url": "https://multiserviciosalonzo.com",
+        "telephone": "+34678204301",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Calle Carmen, 8",
+          "addressLocality": "Ciudad Real",
+          "postalCode": "13003",
+          "addressCountry": "ES"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 38.9848,
+          "longitude": -3.9274
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": RATING,
+          "reviewCount": REVIEWS_COUNT
+        },
+        "priceRange": "$$"
+      })
+    }}
+  />
 );
 
 // --- UI Components ---
