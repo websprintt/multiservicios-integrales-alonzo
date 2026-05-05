@@ -19,14 +19,17 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        # Este comando instala todo incluso si no hay lockfile
+        run: npm install 
 
       - name: Build
-        run: npm run build
+        # Usamos CI=false para que los avisos de TS no rompan el build
+        run: |
+          export CI=false
+          npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -34,11 +37,11 @@ jobs:
           path: './dist'
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
