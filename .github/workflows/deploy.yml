@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: "main" # Asegúrate de que este sea el nombre de tu rama principal
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -12,6 +12,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,29 +21,27 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # Usamos la versión 22 para evitar avisos de depreciación
-          # Eliminamos la línea de 'cache' si existía, que es lo que causaba el error del lock file
+          node-version: 22 # Usamos Node 22 (LTS reciente)
+          # cache: 'npm' # Si no tienes el lock file aún, puedes comentar esta línea
+          # Pero como te lo voy a dar ahora, podemos dejarla.
 
       - name: Install dependencies
-        run: npm install # Esto generará el lock file en el corredor de GitHub automáticamente
+        run: npm install
 
       - name: Build
         run: npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # Vite genera la web en la carpeta dist
+          path: './dist'
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
